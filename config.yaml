@@ -3,7 +3,7 @@
 
 
 # the path to the data
-path: "/vortexfs1/scratch/lma/testmiseq/"
+path: "/vortexfs1/scratch/lma/KillifishMicrobiome/"
 
 # parameters for dada2::filterAndTrim
 

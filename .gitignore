@@ -4,6 +4,8 @@
 
 # Session Data files
 .RData
+.Rproj.user
+*.Rproj
 
 # dada2 product
 Rplots.pdf
@@ -12,4 +14,13 @@ Rplots.pdf
 *-Ex.R
 
 # snakemake stuff
-.snakemake/*
+.snakemake
+
+# quality profiles
+output/qualityProfiles/*
+
+# Mac files
+._.DS*
+.DS_Store
+notebooks/.*
+output/.*

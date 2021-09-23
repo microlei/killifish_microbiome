@@ -1,0 +1,20 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 36
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	taxonomy
+	1
+
+[Wed Sep 22 19:12:06 2021]
+rule taxonomy:
+    input: output/seqtab_nochimeras.rds
+    output: output/ASVs.txt, output/taxonomy.txt, output/ASVseqs.txt
+    log: logs/taxonomy.txt
+    jobid: 0
+
+Loading required package: Rcpp
+[Wed Sep 22 19:22:13 2021]
+Finished job 0.
+1 of 1 steps (100%) done

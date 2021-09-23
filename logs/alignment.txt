@@ -1,0 +1,78 @@
+Unaligned sequences 
+  A DNAStringSet instance of length 11753
+        width seq                                           names               
+    [1]   253 TACGTAGGTGGCAAGCGTTGT...AAAGCGTGGGGAGCAAACAGG ASV1
+    [2]   253 TACGGAGGGTGCGAGCGTTAA...AAAGCGTGGGGAGCAAACAGG ASV2
+    [3]   252 TACATAGGATGCAAGCGTTAT...AAAGTGTGGGGAGCAAATAGG ASV3
+    [4]   253 TACATATGATGCAAGCGTTAT...AAAGCTAGGGGAGCGAATAGG ASV4
+    [5]   253 TACGGAGGGTGCGAGCGTTAA...AAAGCGTGGGGAGCAAACAGG ASV5
+    ...   ... ...
+[11749]   251 TACGAGAGGGGCAAGCGTTAT...AAGGCGTGGGGATCAAAAGGG ASV11749
+[11750]   253 TACGAAGGTCCCAAGCGTTGT...AAGGCTAGGGGAGCGAACAGG ASV11750
+[11751]   253 GACGGAGGGGGCAAGCGTTGT...AAAGCGTGGGGAGCAAACCGG ASV11751
+[11752]   253 GACGTAGGGAGCAAGCGTTGC...AAAGCGTGGGTAGCGAACGGG ASV11752
+[11753]   253 TGCGAAGGGGGCTAGCGTTGT...AAAGCGTGGGGAGCAAACAGG ASV11753
+Beginning alignment: 
+Determining distance matrix based on shared 8-mers:
+================================================================================
+
+Time difference of 855.49 secs
+
+Clustering into groups by similarity:
+================================================================================
+
+Time difference of 21.46 secs
+
+Aligning Sequences:
+================================================================================
+
+Time difference of 94.59 secs
+
+Iteration 1 of 2:
+
+Determining distance matrix based on alignment:
+================================================================================
+
+Time difference of 113.24 secs
+
+Reclustering into groups by similarity:
+================================================================================
+
+Time difference of 12.31 secs
+
+Realigning Sequences:
+================================================================================
+
+Time difference of 48.09 secs
+
+Iteration 2 of 2:
+
+Determining distance matrix based on alignment:
+================================================================================
+
+Time difference of 122.44 secs
+
+Reclustering into groups by similarity:
+================================================================================
+
+Time difference of 12.47 secs
+
+Realigning Sequences:
+================================================================================
+
+Time difference of 10.9 secs
+
+Refining the alignment:
+================================================================================
+
+Time difference of 3.66 secs
+
+Alignment finished, peek at alignment 
+  A DNAStringSet instance of length 6
+    width seq                                               names               
+[1]   691 -----------------------...CAGG------------------- ASV1
+[2]   691 -----------------------...CAGG------------------- ASV2
+[3]   691 -----------------------...TAGG------------------- ASV3
+[4]   691 -----------------------...TAGG------------------- ASV4
+[5]   691 -----------------------...CAGG------------------- ASV5
+[6]   691 -----------------------...TGGG------------------- ASV6

@@ -1,0 +1,42 @@
+---
+title: "Checking read quality before cleanup"
+author: "Lei Ma"
+output: github_document
+---
+
+```{r libraries}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, include=TRUE)
+knitr::knit_hooks$set(inline = function(x) if(is.numeric(x)){format(x,digits=2)}else{x})
+
+#data manipulations
+library(tidyverse)
+library(readr)
+
+#plotting stuff
+library(ggplot2)
+
+#analysis
+library(dada2)
+library(phyloseq)
+library(decontam)
+```
+
+```{r data}
+taxonomy <- read.delim("output/taxonomy.txt", "\t", header=TRUE, row.names=1, check.names = FALSE)
+asvs <- read.delim("output/ASVs.txt", "\t", header=TRUE, row.names=1, check.names = FALSE)
+metadata <- read.delim("output/KLF_metadata.csv", ",", header = TRUE, row.names=1, check.names=FALSE)
+tree <- read_tree("output/tree.nwk")
+
+
+seqtab <- readRDS("output/seqtab_nochimeras.rds")
+
+
+ps <- phyloseq(otu_table(as.matrix(asvs), taxa_are_rows=TRUE),
+              sample_data(as.data.frame(metadata)),
+              tax_table(as.matrix(taxonomy)),
+              phy_tree(tree))
+```
+
+```{r check mocks}
+```
+

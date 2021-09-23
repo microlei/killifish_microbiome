@@ -1,0 +1,163 @@
+Beginning output of taxonomy assignment 
+Assigning taxonomy
+841 out of 11753 were assigned to the species level.
+Of which 679 had genera consistent with the input table.     Kingdom    Phylum           Class                 Order            
+[1,] "Bacteria" "Firmicutes"     "Bacilli"             "Lactobacillales"
+[2,] "Bacteria" "Proteobacteria" "Gammaproteobacteria" "Vibrionales"    
+[3,] "Bacteria" "Firmicutes"     "Bacilli"             "Mycoplasmatales"
+[4,] "Bacteria" "Cyanobacteria"  "Cyanobacteriia"      "Chloroplast"    
+[5,] "Bacteria" "Proteobacteria" "Gammaproteobacteria" "Vibrionales"    
+[6,] "Bacteria" "Cyanobacteria"  "Cyanobacteriia"      "Chloroplast"    
+     Family             Genus          Species
+[1,] "Enterococcaceae"  "Enterococcus" NA     
+[2,] "Vibrionaceae"     NA             NA     
+[3,] "Mycoplasmataceae" "Mycoplasma"   NA     
+[4,] NA                 NA             NA     
+[5,] "Vibrionaceae"     "Vibrio"       NA     
+[6,] NA                 NA             NA     
+Finished training set! 
+Making output ASV table...
+Making asv table with  11753  sequences.
+Glance at taxonomy
+     Kingdom    Phylum           Class                 Order            
+ASV1 "Bacteria" "Firmicutes"     "Bacilli"             "Lactobacillales"
+ASV2 "Bacteria" "Proteobacteria" "Gammaproteobacteria" "Vibrionales"    
+ASV3 "Bacteria" "Firmicutes"     "Bacilli"             "Mycoplasmatales"
+ASV4 "Bacteria" "Cyanobacteria"  "Cyanobacteriia"      "Chloroplast"    
+ASV5 "Bacteria" "Proteobacteria" "Gammaproteobacteria" "Vibrionales"    
+ASV6 "Bacteria" "Cyanobacteria"  "Cyanobacteriia"      "Chloroplast"    
+     Family             Genus          Species
+ASV1 "Enterococcaceae"  "Enterococcus" NA     
+ASV2 "Vibrionaceae"     NA             NA     
+ASV3 "Mycoplasmataceae" "Mycoplasma"   NA     
+ASV4 NA                 NA             NA     
+ASV5 "Vibrionaceae"     "Vibrio"       NA     
+ASV6 NA                 NA             NA     
+==========
+Glance at ASVs
+     KLF_29 KLF_18 KLF_47 KLF_14 KLF_23 KLF_238 KLF_78 KLF_extraction_Ctrl_1
+ASV1      0      0     31      0      0  111617    167                     0
+ASV2 100163  63434  17724  74133  59250    1045   1258                    76
+ASV3   4345  24625   3741     15    185       0  19324                     7
+ASV4     16      0     11      0      0       0      5                    27
+ASV5    447    315      0    866   5222       0    572                  2635
+ASV6      0      0      0      0      0    8384      0                     0
+     KLF_56 KLF_48 KLF_236 KLF_32 KLF_202 KLF_214 KLF_212 KLF_extraction_Ctrl_2
+ASV1      0      0   81605      0  104932   92368   86800                     0
+ASV2   1468   1883       0  19857     130       0      21                  5537
+ASV3      0    266       7  78276       0       0       0                  1873
+ASV4     74     91       0      0       0       0       0                     0
+ASV5   1474     38       0   2118       7       0       0                     0
+ASV6      0      0    4243      0    6380    9654    3516                     0
+     KLF_12 KLF_227 KLF_114 KLF_SC_water_1 KLF_52 KLF_19 KLF_58 KLF_234 KLF_105
+ASV1      0   83800   49827              0      0      0      0   74721  102018
+ASV2  16724      42      23            135   7531  60435   2939      13     141
+ASV3  10149       0       0              0      0    501    946       0      76
+ASV4      0       0       0              0      0      0   1135       0       0
+ASV5    393     764       0            220    221   2231  26635       0       0
+ASV6      0    1279    2218              0      0      0      0    9472    3113
+     KLF_Mock2 KLF_51 KLF_107 KLF_26 KLF_75 KLF_37 KLF_235 KLF_209 KLF_205
+ASV1     24669      0   85586      0      0    435   55516   69805   51661
+ASV2         0    309    1359  79627  25614  51672      16     689      11
+ASV3         0   2197       0     32      8      0       0       0       0
+ASV4         0   4417       0      0      0      0       0       0       0
+ASV5         0   1719       0    468   1030  12303       0      14       0
+ASV6         5      0    7864      0      0      4     463    2639    1975
+     KLF_35 KLF_43 KLF_110 KLF_extraction_Ctrl_4 KLF_22 KLF_54 KLF_71 KLF_222
+ASV1    366      0   53780                     0      0      0      0   83332
+ASV2  56654    942      87                    42  65906    258  14486       0
+ASV3  29847  41226       0                     0    581      0  18827       0
+ASV4      0  20207       0                     0      0  23056      0       0
+ASV5   1682    107       0                     0    849   2490    439       0
+ASV6      0      0    2719                     0      0      0      0    3601
+     KLF_103 KLF_1 KLF_neg KLF_21 KLF_5 KLF_15 KLF_224 KLF_7 KLF_X1 KLF_2
+ASV1   77415     0     273      0     0      0   88808     0   1211     0
+ASV2      24 37301      51  95447 87172  91982      23  3433     57 84919
+ASV3       0     0       0      0    26   4035       0 85284      0     0
+ASV4       0     7       0     18    17      0       0     0      0     0
+ASV5       0    22       0     70   458    127       0    99      0   378
+ASV6    3582     0       5      0     0      0    7653     0      0     0
+     KLF_10 KLF_207 KLF_46 KLF_77 KLF_17 KLF_217 KLF_39 KLF_44 KLF_16 KLF_233
+ASV1      0   73391      0      0      0  101151    269      0      0   73329
+ASV2  71634      28  16463   1321  56282     105  80178   4058  29221      71
+ASV3      7       0   2773      9    236       0      0     25    248       0
+ASV4      0       0     69  63346      8       0      0     35      0       0
+ASV5   3748      81    248   5527   1672       0    356  22658    727       0
+ASV6      0   10617      0      0      0    3620      5      0      0    4380
+     KLF_101 KLF_213 KLF_232 KLF_230 KLF_74 KLF_38 KLF_extraction_Ctrl_3 KLF_80
+ASV1   69911  100859   80970   86161     88    295                     0    116
+ASV2    3252      79     332       0   3647    112                    80     68
+ASV3       0       0       0       0      7  69868                     9     53
+ASV4       0       0       0       0     96     20                     0      0
+ASV5    1672       0       0       0  12441    901                    26      0
+ASV6    4892    1878    8772     810      0      9                     0      0
+     KLF_231 KLF_45 KLF_102 KLF_113 KLF_20 KLF_33 KLF_200 KLF_NBH_water_2
+ASV1   47566      0   70715   70930      0    357   69462               0
+ASV2       0    825      81       0  56577  56142    2340             110
+ASV3       0     11       0       0    176   1167       0               0
+ASV4       0  68565       0       0      0      0       0               0
+ASV5       0    271       0      39      0    670       0             254
+ASV6    2185      0    2727     874      0      5    5906               0
+     KLF_extraction_Ctrl_5 KLF_241 KLF_208 KLF_220 KLF_70 KLF_229 KLF_28
+ASV1                     0  115087   67110   70047      0   57169      0
+ASV2                    37      98      45       9    830     188  56969
+ASV3                     0       0       0       0     42       0   3044
+ASV4                     0       0       0       0  15570       0      0
+ASV5                     0       0      84       0  22888       0   1309
+ASV6                     0    2734    3451    3271      0    1435      0
+     KLF_203 KLF_210 KLF_4 KLF_40 KLF_67 KLF_NBH_water_1 KLF_201 KLF_73 KLF_X2
+ASV1   79204   94330     0    250      0               0   86545    109    279
+ASV2      41      29 58592    145   2443              95      28    595     22
+ASV3      21       0  4169  13967      0             385       0  58426      0
+ASV4       0       0     0      0    209              57       0   3503      0
+ASV5      48       0   986     38   5275             183       0   1426      0
+ASV6    3416    2661     0      0      0               0    1924      0      0
+     KLF_221 KLF_79 KLF_243 KLF_106 KLF_64 KLF_66 KLF_X3 KLF_59 KLF_76 KLF_104
+ASV1   80854      0   65653   58784      0      0    496     41      0   56490
+ASV2      64  16268      83     175   1608   2502      0   1968   2661    1822
+ASV3       0     20       0       0      0     46      0      0     23       0
+ASV4       0      0       0       0      0  15542      0     42    530       0
+ASV5       0   6939       0      63    533   1525      0    885  44897     625
+ASV6    2780      0    6287    2900      0      0      0      0      0    5470
+     KLF_237 KLF_Mock1 KLF_240 KLF_225 KLF_218 KLF_PCR_neg KLF_72 KLF_27
+ASV1   59173      2625   83382   77419  103925           0      0      0
+ASV2      25        29      11      82      14          39   5358  94699
+ASV3       0         0       0       0       0           0     15      0
+ASV4       0         0       0       0       0           0     47      0
+ASV5       0        23       0       0       0           0   2801    211
+ASV6     995         0    1806    2337    1024           0      0      0
+     KLF_216 KLF_57 KLF_69 KLF_50 KLF_41 KLF_242 KLF_60 KLF_62 KLF_36 KLF_42
+ASV1   62065      0      0    970      0   70520      0      0      0      0
+ASV2      16    644    440     49   7846      66   7336   1426  76455   1445
+ASV3       0      0  11395      0    550       7      0      0  68138    129
+ASV4       0   9478    372     23  44696       0      0   1310      0     26
+ASV5       4   2191  26855   9053     31       0    259    530   3832    866
+ASV6    2007      0      0      0      0    5062      0      0      0      0
+     KLF_65 KLF_244 KLF_13 KLF_215 KLF_SC_water_2 KLF_206 KLF_228 KLF_34
+ASV1      0   23192      0   63458              0   42545   54959    254
+ASV2   3385       4  44913      19             80     493      54  79272
+ASV3      0       0  22346       0              0       0      11   6439
+ASV4    821       0     22       0              0       0       0      0
+ASV5  23379       0   1591     185            358      72       0    175
+ASV6      0   20002      0    1358              0    2804    5025      0
+     KLF_226 KLF_6 KLF_219 KLF_30 KLF_11 KLF_239 KLF_31 KLF_3 KLF_53 KLF_61
+ASV1   77917     0   84254      0      0   61981      0     0      0      0
+ASV2       0 42065       0  33424 117109       0  69267  5482     47   7003
+ASV3       0 41900       8  14234      0       0   4100  2958      0      0
+ASV4       0     0       0      0      0       0      0     0      7  16866
+ASV5       0    96       0   2722    143       0   1195    45    650   5775
+ASV6     312     0    2688      0      0    2761      0     0      0      0
+     KLF_68 KLF_211 KLF_49 KLF_63 KLF_24 KLF_100 KLF_9 KLF_8 KLF_109 KLF_55
+ASV1    426   40434      0      0      0   56991     0     0   66708      0
+ASV2    128       0   1069    549  14959     135 72581 82981   12000    917
+ASV3      0       0      0     30      7       0  1577  6030      34     77
+ASV4      0       0  30409  11272      0       0     3     0       0      0
+ASV5    124       0    125   1281    176      14    40  2006       0   1415
+ASV6      0    1426      0      0      0     769     0     0    5307      0
+     KLF_25 KLF_204 KLF_111 KLF_108 KLF_112
+ASV1      0   82864   43145   69436   68527
+ASV2  92679      19      44     695      14
+ASV3     21       0       0       0       0
+ASV4      0       0       0       0       0
+ASV5    128       0       0       0       0
+ASV6      0    2876    3773    5004    3932

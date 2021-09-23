@@ -1,0 +1,7 @@
+Beginning output of removing chimeras 
+Dimensions after removing chimeras: 
+[1]   155 11753
+Proportion of original: 
+[1] 0.9784837
+ KLF_29  KLF_18  KLF_47  KLF_14  KLF_23 KLF_238 
+ 111220   95658   50514   92838   99461  143927 
