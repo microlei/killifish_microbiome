@@ -2,11 +2,15 @@
 title: "Checking read quality before cleanup"
 author: "Lei Ma"
 output: github_document
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
 ---
 
-```{r libraries}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, include=TRUE)
+```{r libraries, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, include=TRUE)
 knitr::knit_hooks$set(inline = function(x) if(is.numeric(x)){format(x,digits=2)}else{x})
+
+#misc
+library(here)
 
 #data manipulations
 library(tidyverse)
@@ -19,24 +23,124 @@ library(ggplot2)
 library(dada2)
 library(phyloseq)
 library(decontam)
+library(skimr)
 ```
 
 ```{r data}
-taxonomy <- read.delim("output/taxonomy.txt", "\t", header=TRUE, row.names=1, check.names = FALSE)
-asvs <- read.delim("output/ASVs.txt", "\t", header=TRUE, row.names=1, check.names = FALSE)
-metadata <- read.delim("output/KLF_metadata.csv", ",", header = TRUE, row.names=1, check.names=FALSE)
-tree <- read_tree("output/tree.nwk")
+taxonomy <- read.delim(here("output/taxonomy.txt"), "\t", header=TRUE, row.names=1, check.names = FALSE)
+asvs <- read.delim(here("output/ASVs.txt"), "\t", header=TRUE, row.names=1, check.names = FALSE)
+metadata <- read.delim(here("data/KLF_metadata.csv"), ",", header = TRUE, row.names=1, check.names=FALSE)
+tree <- read_tree(here("output/tree.nwk"))
+track <- read.delim(here("output/track.tsv"), "\t", header=TRUE, row.names=1, check.names=FALSE)
+track <- mutate(track, prop.retained = nochim/reads.in) 
 
+seqtab <- readRDS(here("output/seqtab_nochimeras.rds"))
+rownames(seqtab) <- rownames(track)
 
-seqtab <- readRDS("output/seqtab_nochimeras.rds")
-
+mock.ref <- getSequences(here("data/HMP_MOCK.v35.fasta"))
 
 ps <- phyloseq(otu_table(as.matrix(asvs), taxa_are_rows=TRUE),
               sample_data(as.data.frame(metadata)),
               tax_table(as.matrix(taxonomy)),
               phy_tree(tree))
+
+ps <- merge_phyloseq(ps, sample_data(track))
+metadata <- as(sample_data(ps), 'data.frame')
+
 ```
 
-```{r check mocks}
+## Raw data / run summary
+
+Making sure that the two sequencing runs are not too different from each other. In general it seems like Run2 had a higher proportion of reads pass filter but not more overall reads
+```{r pass filter}
+metadata %>% ggplot(aes(x=nochim, y=prop.retained, color=sequencingRun))+geom_point()+labs(x="Reads pass filter", y="Proportion pass filter")
 ```
 
+## Mock community check
+Next we check that the Mock community is well covered in both runs. Mock1 is from Run1 and Mock2 is from Run2. Looks like there's very low contamination of other sequences in the mock samples. However, there is some slight difference in the ordering of mock abundances, but this variation is similar to previous runs. 
+
+```{r mock}
+match.mock <- sapply(names(seqtab[1,]), function(x) any(grepl(x, c(mock.ref))))
+match.mock <- rownames(taxonomy[match.mock,])
+ps.mock <- ps %>% subset_samples(sampleType=="mock") %>% prune_taxa(taxa_sums(.)>0, .) %>% transform_sample_counts(function(x) x/sum(x)) %>% psmelt()
+ps.mock <- ps.mock %>% bind_cols(correct=sapply(ps.mock$OTU, function(x) if(x %in% match.mock){return("Correct")}else{return("Wrong")}))
+
+ps.mock %>% select(OTU, sample, Abundance, correct) %>% group_by(sample, correct) %>% summarise(proportion = sum(Abundance)) %>% pivot_wider(id_cols=sample, values_from = proportion, names_from=correct)
+
+ps.mock %>% filter(OTU %in% match.mock) %>% ggplot(aes(x=reorder(OTU, Abundance), y=Abundance, color=Genus)) + geom_point() + facet_wrap(~sample) + theme(axis.text.x = element_text(angle=45)) + labs(x="ASV", y="Relative abundance")
+```
+
+Now that mock is checked out, we can remove it from the data.
+```{r remove mock}
+ps <- ps %>% subset_samples(sampleType != "mock") %>% prune_taxa(taxa_sums(.)>0,.)
+```
+
+## Removing ASVs with decontam
+
+We will use decontam and the negative controls (both extraction negatives and pcr negatives) to filter out potential contaminant sequences by frequency of appearance in the negative controls.
+
+```{r decontam}
+sample_data(ps)$is.neg <- grepl("control", sample_data(ps)$sampleType)
+contamdf.prev <- isContaminant(ps, method="prevalence", neg="is.neg")
+table(contamdf.prev$contaminant)
+```
+
+Below is the taxonomy of the ASVs that were identified as contaminants.
+
+```{r decontam taxonomy}
+contaminant_asvs <- rownames(contamdf.prev[which(contamdf.prev$contaminant),])
+taxonomy[contaminant_asvs,]
+```
+
+Here's a graph of the ASV prevalence in true vs negative control samples. Highlighed in blue are the ones identified as contaminants. 
+```{r decontam graph}
+ps.pa <- transform_sample_counts(ps, function(abund) 1*(abund>0))
+ps.pa.neg <- prune_samples(sample_data(ps.pa)$is.neg == TRUE, ps.pa)
+ps.pa.pos <- prune_samples(sample_data(ps.pa)$is.neg != TRUE, ps.pa)
+# Make data.frame of prevalence in positive and negative samples
+df.pa <- data.frame(pa.pos=taxa_sums(ps.pa.pos), pa.neg=taxa_sums(ps.pa.neg),
+                      contaminant=contamdf.prev$contaminant)
+ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + geom_point() +
+  xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
+```
+
+## Chloroplasts
+
+I also want to remove the chloroplasts from the samples. However, I want to make a record of the chloroplast abundance in the metadata of the sample, because it may be useful information later. 
+
+```{r chloroplast levels}
+ps.chloroplast <- ps %>% transform_sample_counts(function(x) x/sum(x)) %>% subset_taxa(Order=="Chloroplast") %>% psmelt() %>% select(OTU, sample, Abundance)
+ps.chloroplast <- ps.chloroplast %>% group_by(sample) %>% summarise(chl_abundance=sum(Abundance)) %>% column_to_rownames("sample")
+
+ps <- merge_phyloseq(ps, sample_data(ps.chloroplast))
+
+ggplot(sample_data(ps), aes(x=reorder(sample, chl_abundance), y=chl_abundance, color=sampleType)) + geom_point() + facet_wrap(~site, scales="free_x") + labs(title="Proportion of reads matching Order Chloroplast", x="Sample", y="Chloroplast relative abundance")
+```
+Removing chloroplasts, contaminants, and non-bacterial/archaeal ASVs
+How do the read counts look after we remove the chloroplast samples and the putative contaminants? 
+
+```{r cleaning up}
+# remove contaminants
+ps <- prune_taxa(!taxa_names(ps) %in% contaminant_asvs, ps)
+
+# remove chloroplasts and Eukaryotess
+ps <- subset_taxa(ps, Kingdom!="Eukaryota") %>% subset_taxa(Order!="Chloroplast" | is.na(Order))
+
+# remove controls
+ps <- subset_samples(ps, sampleType %in% c("gut", "water")) %>% prune_taxa(taxa_sums(.)>0,.)
+
+# get number and proportion of reads now
+sample_data(ps)$reads.clean <- sample_sums(ps)
+sample_data(ps)$final.prop <- sample_data(ps)$reads.clean/sample_data(ps)$reads.in
+```
+
+
+## Cleaned up stats
+
+In the table below nochim is the number of raw reads passed dada2 filtering. prop.retained is the proportion passed dada2 filtering. reads.clean is the number of reads we currently have and final.prop is the final proportion of reads pass all the filtering (dada2 and what we just did)
+```{r read stats}
+read_stats <- sample_data(ps) %>% as_tibble() %>% select(sample, nochim, prop.retained, reads.clean, final.prop) %>% skim(where(is.numeric))
+tibble(read_stats)
+```
+
+The script preprocessing.R will generate the cleaned data that will be used in the subsequence notebooks. 
