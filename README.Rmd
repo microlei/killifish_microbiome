@@ -1,0 +1,70 @@
+---
+title: "Working title: Aromatic hydrocarbon pollution and its effect on Atlantic killifish evolution and gut microbiota"
+author: "Lei Ma"
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+output: github_document
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, include=FALSE)
+```
+
+## Abstract
+
+The Atlantic killifish, Fundulus heteroclitus, is an abundant estuarine fish broadly distributed along the eastern coast of the U.S. Known for their hardiness to industrial pollution, populations of killifish have repeatedly evolved tolerance to levels of aromatic hydrocarbon exposure that would otherwise be lethal. This tolerance, which is heritable across at least two generations, is linked to reduced activation of the aryl hydrocarbon receptor (AHR) signaling pathway. In other animals such as zebrafish and mice, the AHR has been shown to influence the gut microbiome, particularly when activated by the model toxic pollutant 3,3’,4,4’,5-pendachlorobiphenyl (PCB-126). While there exists extensive literature on killifish ecophysiology and evolution, little is known about the natural microbiome of these fish, and there have been few studies examining the downstream effects of their rapid adaptations on their microbiota. In order to understand host and environmental effects on killifish gut microbiota, we sampled two populations of wild fish - New Bedford Harbor (NBH) and Scorton Creek (SC) - as well as lab reared F2 generation fish originating from each of these wild populations. NBH fish are known to have evolved tolerance to aromatic hydrocarbons while SC fish are considered sensitive to aromatic hydrocarbon exposure. For each fish, we used PCR to screen for common AHR-related genotypes and used 16S rRNA-based amplicon sequencing to assess the microbial composition of the gut microbiome. In preliminary results, we found that fish from NBH, a more polluted site, had consistently higher microbial alpha and beta diversity than fish from SC, a less polluted site. Additionally, NBH fish guts were enriched in bacteria from the order Vibrionales, which contain common fish pathogens. Overall, our results represent a major first step in understanding the connection between the evolutionary adaptation of killifish and their effects on the fish's gut microbiota.
+
+## Directory description
+
+### Data
+
+Contains the metadata and data files that have been generated during analysis phase. Ignores large files (like .rds files) used in some scripts and notebooks due to github storage limits.
+
+### Logs
+
+Logs of the Snakemake dada2 data processing of the raw sequence reads
+
+### Notebooks
+
+Rmarkdown notebooks and generated during the exploratory phase of data analysis. You can read the notebooks in your browser by clicking on the .md files.
+
+### Output
+
+Output of the Snakemake dada2 data processing, including the ASV table and some intermediate products. Does not include the quality profiles of the samples.
+
+### Scripts
+
+R scripts used in the Snakemake workflow, in data analysis, and in generating figures.
+
+## Dependencies
+
+For the dada2 Snakemake pipeline
+
+* See my [MiSeq](https://github.com/microlei/apprill-miseq) processing workflow for dependencies
+
+For the data analysis and manuscript
+
+* See session info below
+
+## Session Info
+```{r libraries}
+#misc
+library(here)
+
+#data manipulations
+library(tidyverse)
+library(readr)
+
+#plotting stuff
+library(ggplot2)
+
+#analysis
+library(phyloseq)
+library(vegan)
+library(decontam)
+library(skimr)
+```
+
+```{r session, message=TRUE, include=TRUE}
+sessionInfo()
+```
+

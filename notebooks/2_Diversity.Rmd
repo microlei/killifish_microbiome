@@ -1,0 +1,91 @@
+---
+title: "Exploring alpha and beta diversity"
+author: "Lei Ma"
+output: github_document
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+---
+
+```{r libraries, echo=FALSE, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, include=TRUE)
+knitr::knit_hooks$set(inline = function(x) if(is.numeric(x)){format(x,digits=2)}else{x})
+
+#misc
+library(here)
+
+#data manipulations
+library(tidyverse)
+library(readr)
+
+#plotting stuff
+library(ggplot2)
+
+#analysis
+library(phyloseq)
+library(vegan)
+```
+
+```{r data}
+ps <- readRDS(here("data/processed/ps.rds"))
+ps.rel <- readRDS(here("data/processed/psrel.rds"))
+```
+
+## Alpha diversity
+
+Comparing wild and F2 killifish alpha diversity. Black dots represent the water at each site at the time of sampling. Water for the captive killifish is not available. 
+
+```{r alpha, warning=FALSE}
+p <- ps %>% subset_samples(sampleType=="gut") %>% plot_richness(x = "site", measures=c("Observed","Shannon","Simpson"))
+w <- ps %>% subset_samples(sampleType=="water") %>% plot_richness(x = "site", measures=c("Observed","Shannon","Simpson"))
+ggplot(p$data, aes(x=site, y=value, color=wild_or_F2)) + geom_boxplot() + geom_point(data=w$data, aes(x=site, y=value), color="black") + facet_wrap(~variable, scales="free_y") + theme_light() + labs(title="Alpha diversity metrics", y="")
+```
+
+## PCoA of all samples
+
+I attempted to do an NMDS ordination but `metaMDS` would not converge. So I created a PCoA using Bray-Curtis dissimilarity
+```{r pcoa ordinate}
+ps.rel.bc <- distance(ps.rel, method="bray")
+ps.rel.bc.pcoa <- ordinate(ps.rel, method="MDS", distance=ps.rel.bc)
+```
+
+```{r pcoa plot}
+p <- plot_ordination(ps.rel, ps.rel.bc.pcoa) + 
+  geom_point(aes(color=site, shape=wild_or_F2), size=4) +
+  labs(title="PCoA using Bray Curtis Dissimilarity") +
+  theme_light()
+
+# coordinates are fixed to the sqrt of the second eigenvalue divided by the first eigenvalue
+p + 
+  geom_point(data=p$data %>% filter(sampleType=="water"), aes(x=Axis.1, y=Axis.2, color=site), shape="circle", size=4) + 
+  scale_color_manual(name="Site", values=c("pink", "blue")) +
+  scale_shape_manual(name="Sample/Fish Type", values=c("square", "circle", "triangle"),labels=c("Water", "F2", "Wild")) +
+  coord_fixed(sqrt(ps.rel.bc.pcoa$values[,1][2]/ps.rel.bc.pcoa$values[,1][1]))
+```
+
+## Beta dispersion
+
+Subsetting to just the gut samples, now we look at the beta dispersion/diversity between sites and between F2 and wild type
+
+```{r beta dispersion}
+ps.rel.gut <- ps.rel %>% subset_samples(sampleType=="gut")
+ps.rel.gut.dist <- distance(ps.rel.gut, "bray")
+dat <- as(sample_data(ps.rel.gut), "data.frame")
+
+fishType <- dat$fishType
+site <- dat$site
+wild_or_F2 <- dat$wild_or_F2
+
+# Check the beta dispersion of site X wild_or_F2
+disper.fishType <- betadisper(d=ps.rel.gut.dist, group=fishType)
+df <- data.frame(disper=disper.fishType$distances,group=disper.fishType$group)
+disper_plot<-ggplot(df, aes(x=group, y=disper)) + geom_boxplot(aes(color=group)) + 
+  labs(y="Distance from centroid") +coord_flip() + scale_x_discrete(limits=rev) + 
+  theme_light() + theme(axis.title.y.left = element_blank(), legend.position = "none") + labs(title="Distance to spatial median")
+disper_plot
+```
+
+
+Tukey's HSD test shows that all pairwise comparisons of beta dispersion between fish types are significantly different except for between the F2 fish. 
+```{r tukey HSD}
+tuk.fishType <- TukeyHSD(disper.fishType)
+tuk.fishType
+```

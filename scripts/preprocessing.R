@@ -48,6 +48,11 @@ ps <- subset_samples(ps, sampleType %in% c("gut", "water")) %>% prune_taxa(taxa_
 # remove chloroplasts and Eukaryotess
 ps <- subset_taxa(ps, Kingdom!="Eukaryota") %>% subset_taxa(Order!="Chloroplast" | is.na(Order))
 
+# make new variable called fishType that combines site and wild_or_F2
+sample_data(ps)$fishType <- paste(as.character(sample_data(ps)$site),as.character(sample_data(ps)$wild_or_F2)) %>% 
+  factor(levels=c("New Bedford Harbor wild", "New Bedford Harbor F2", "New Bedford Harbor water",
+                  "Scorton Creek wild", "Scorton Creek F2", "Scorton Creek water"))
+
 # transform to relative abundances
 ps.rel <- transform_sample_counts(ps, function(x) x/sum(x))
 

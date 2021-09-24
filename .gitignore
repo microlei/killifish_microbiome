@@ -24,3 +24,6 @@ output/qualityProfiles/*
 .DS_Store
 notebooks/.*
 output/.*
+
+# rds files
+data/processed/*.rds
