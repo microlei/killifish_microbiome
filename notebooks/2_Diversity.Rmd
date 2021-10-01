@@ -5,8 +5,8 @@ output: github_document
 date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
 ---
 
-```{r libraries, echo=FALSE, include=TRUE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, include=TRUE)
+```{r libraries, echo=FALSE, include=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, include=TRUE, fig.width=12)
 knitr::knit_hooks$set(inline = function(x) if(is.numeric(x)){format(x,digits=2)}else{x})
 
 #misc
@@ -57,7 +57,7 @@ p <- plot_ordination(ps.rel, ps.rel.bc.pcoa) +
 p + 
   geom_point(data=p$data %>% filter(sampleType=="water"), aes(x=Axis.1, y=Axis.2, color=site), shape="circle", size=4) + 
   scale_color_manual(name="Site", values=c("pink", "blue")) +
-  scale_shape_manual(name="Sample/Fish Type", values=c("square", "circle", "triangle"),labels=c("Water", "F2", "Wild")) +
+  scale_shape_manual(name="Sample/Fish Type", values=c("square", "circle", "triangle"),labels=c("F2", "Water", "Wild")) +
   coord_fixed(sqrt(ps.rel.bc.pcoa$values[,1][2]/ps.rel.bc.pcoa$values[,1][1]))
 ```
 
@@ -78,8 +78,8 @@ wild_or_F2 <- dat$wild_or_F2
 disper.fishType <- betadisper(d=ps.rel.gut.dist, group=fishType)
 df <- data.frame(disper=disper.fishType$distances,group=disper.fishType$group)
 disper_plot<-ggplot(df, aes(x=group, y=disper)) + geom_boxplot(aes(color=group)) + 
-  labs(y="Distance from centroid") +coord_flip() + scale_x_discrete(limits=rev) + 
-  theme_light() + theme(axis.title.y.left = element_blank(), legend.position = "none") + labs(title="Distance to spatial median")
+  labs(y="Distance from spatial media") +coord_flip() + scale_x_discrete(limits=rev) + 
+  theme_light() + theme(axis.title.y.left = element_blank(), legend.position = "none")
 disper_plot
 ```
 

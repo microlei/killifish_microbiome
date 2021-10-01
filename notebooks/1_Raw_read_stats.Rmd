@@ -5,8 +5,8 @@ output: github_document
 date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
 ---
 
-```{r libraries, echo=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, include=TRUE)
+```{r libraries, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, include=TRUE, fig.width=12)
 knitr::knit_hooks$set(inline = function(x) if(is.numeric(x)){format(x,digits=2)}else{x})
 
 #misc
@@ -114,7 +114,7 @@ ps.chloroplast <- ps.chloroplast %>% group_by(sample) %>% summarise(chl_abundanc
 
 ps <- merge_phyloseq(ps, sample_data(ps.chloroplast))
 
-ggplot(sample_data(ps), aes(x=reorder(sample, chl_abundance), y=chl_abundance, color=sampleType)) + geom_point() + facet_wrap(~site, scales="free_x") + labs(title="Proportion of reads matching Order Chloroplast", x="Sample", y="Chloroplast relative abundance")
+ggplot(sample_data(ps), aes(x=reorder(sample, chl_abundance), y=chl_abundance, color=sampleType)) + geom_point() + facet_wrap(~fishType, scales="free_x") + labs(title="Proportion of reads matching Order Chloroplast", x="Sample", y="Chloroplast relative abundance")
 ```
 Removing chloroplasts, contaminants, and non-bacterial/archaeal ASVs
 How do the read counts look after we remove the chloroplast samples and the putative contaminants? 

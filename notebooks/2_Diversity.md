@@ -1,29 +1,11 @@
 Exploring alpha and beta diversity
 ================
 Lei Ma
-Last compiled on 23 September, 2021
-
-    ## here() starts at /Users/Lei/Dropbox (MIT)/Apprill Lab/Killifish/killifish_microbiome
-
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
-
-    ## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
-    ## ✓ tibble  3.1.4     ✓ dplyr   1.0.7
-    ## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
-    ## ✓ readr   2.0.1     ✓ forcats 0.5.1
-
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-    ## Loading required package: permute
-
-    ## Loading required package: lattice
-
-    ## This is vegan 2.5-7
+Last compiled on 01 October, 2021
 
 ``` r
-source(here("scripts/read_processed_data.R"))
+ps <- readRDS(here("data/processed/ps.rds"))
+ps.rel <- readRDS(here("data/processed/psrel.rds"))
 ```
 
 ## Alpha diversity
@@ -60,7 +42,7 @@ p <- plot_ordination(ps.rel, ps.rel.bc.pcoa) +
 p + 
   geom_point(data=p$data %>% filter(sampleType=="water"), aes(x=Axis.1, y=Axis.2, color=site), shape="circle", size=4) + 
   scale_color_manual(name="Site", values=c("pink", "blue")) +
-  scale_shape_manual(name="Sample/Fish Type", values=c("square", "circle", "triangle"),labels=c("Water", "F2", "Wild")) +
+  scale_shape_manual(name="Sample/Fish Type", values=c("square", "circle", "triangle"),labels=c("F2", "Water", "Wild")) +
   coord_fixed(sqrt(ps.rel.bc.pcoa$values[,1][2]/ps.rel.bc.pcoa$values[,1][1]))
 ```
 
@@ -84,8 +66,8 @@ wild_or_F2 <- dat$wild_or_F2
 disper.fishType <- betadisper(d=ps.rel.gut.dist, group=fishType)
 df <- data.frame(disper=disper.fishType$distances,group=disper.fishType$group)
 disper_plot<-ggplot(df, aes(x=group, y=disper)) + geom_boxplot(aes(color=group)) + 
-  labs(y="Distance from centroid") +coord_flip() + scale_x_discrete(limits=rev) + 
-  theme_light() + theme(axis.title.y.left = element_blank(), legend.position = "none") + labs(title="Distance to spatial median")
+  labs(y="Distance from spatial media") +coord_flip() + scale_x_discrete(limits=rev) + 
+  theme_light() + theme(axis.title.y.left = element_blank(), legend.position = "none")
 disper_plot
 ```
 
