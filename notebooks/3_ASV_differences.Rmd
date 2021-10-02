@@ -45,8 +45,17 @@ taxa_list <- list(sc_w = subset_samples(ps, fishType=="Scorton Creek wild") %>% 
 taxa_overlap <- calculate.overlap(taxa_list)
 
 venn.diagram(taxa_list, filename = here("figures/Venn_gut.png"), imagetype="png", main="Venn diagram of taxa shared between fish types", category.names = c("SC wild", "NBH wild", "SC F2", "NBH F2"))
-knitr::include_graphics(path=here("figures/Venn_gut.png"))
 ```
+
+![Venn Diagram](`r here("figures/Venn_gut.png")`)
+
+```{r overlap percents}
+f2 <- calculate.overlap(list(taxa_list$sc_f2, taxa_list$nb_f2))
+
+w <- calculate.overlap(list(taxa_list$sc_w, taxa_list$nb_w))
+```
+
+F2 fish share `r 100*length(f2$a3)/length(unique(c(f2$a1,f2$a2)))`% of their ASVs while wild fish share `r 100*length(w$a3)/length(unique(c(w$a1, w$a2)))`% of their ASVs.
 
 ## Core taxa - present in all fish types
 
@@ -59,13 +68,24 @@ p <- core.plot + theme(legend.position = "none")
 plot_grid(p, core.plot.legend, ncol=1, rel_heights = c(1,.2))
 ```
 
+Core Lactobacillales ASVs:
+
+`r ps.core %>% tax_table() %>% as.data.frame() %>% filter(Order=="Lactobacillales") %>% .[,4:7]`
+
+Core Vibrionales ASVs:
+
+`r ps.core %>% tax_table() %>% as.data.frame() %>% filter(Order=="Vibrionales") %>% .[,4:7]`
+
+Core Mycoplasmatales ASVs:
+`r ps.core %>% tax_table() %>% as.data.frame() %>% filter(Order=="Mycoplasmatales") %>% .[4:7]`
+
+There are still some of these major groups that are not part of the core that are super abundant in some samples. The following bar chart includes all ASVs from the three main orders, not just the core ASVs. Notice the Lactobacillales that appear in a few of the NBH wild fish and the additional Vibrionales in the SC wild fish. 
+
 ```{r vibrio myco and entero}
 ps.subset <- subset_taxa(ps.rel, Order %in% c("Vibrionales", "Lactobacillales","Mycoplasmatales")) %>% subset_samples(sampleType=="gut")
 ps.subset %>% plot_bar(fill="Order")+ geom_bar(aes(fill=Order), stat="identity", position="stack")+facet_wrap(~fishType, scales="free_x")
 ```
 
-Are the vibrios/mycoplasmatales and enterococcus negative associated with each other within wild types and F2s? Or is it just that enterococcus overtook the vibrios? Analysis TBD.
+Are the vibrios/mycoplasmatales and enterococcus negatively associated/competitive with each other within wild types and F2s? Or is it just that enterococcus overtook the vibrios? Analysis TBD.
 
-```{r heatmap}
-
-```
+Other TBD analysis: wilcoxon rank sum test to look for differential strains between wild and F2

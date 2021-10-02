@@ -78,7 +78,7 @@ wild_or_F2 <- dat$wild_or_F2
 disper.fishType <- betadisper(d=ps.rel.gut.dist, group=fishType)
 df <- data.frame(disper=disper.fishType$distances,group=disper.fishType$group)
 disper_plot<-ggplot(df, aes(x=group, y=disper)) + geom_boxplot(aes(color=group)) + 
-  labs(y="Distance from spatial media") +coord_flip() + scale_x_discrete(limits=rev) + 
+  labs(y="Distance from spatial median (dispersion)") +coord_flip() + scale_x_discrete(limits=rev) + 
   theme_light() + theme(axis.title.y.left = element_blank(), legend.position = "none")
 disper_plot
 ```

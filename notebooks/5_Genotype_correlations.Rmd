@@ -1,0 +1,50 @@
+---
+title: "Host genotype effects"
+author: "Lei Ma"
+output: github_document
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+---
+
+```{r libraries, echo=FALSE, include=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, include=TRUE, fig.width=12)
+knitr::knit_hooks$set(inline = function(x) if(is.numeric(x)){format(x,digits=2)}else{x})
+
+#misc
+library(here)
+
+#data manipulations
+library(tidyverse)
+library(microbiome)
+
+#plotting stuff
+library(ggplot2)
+library(cowplot)
+
+#analysis
+library(phyloseq)
+library(vegan)
+```
+
+```{r data}
+ps <- readRDS(here("data/processed/ps.rds"))
+ps.rel <- readRDS(here("data/processed/psrel.rds"))
+metadata <- read.delim(here("data/processed/metadata.csv"), ",", header = TRUE, row.names=1, check.names=FALSE)
+```
+
+
+## Wild fish microbiome correlation with genotype
+
+Not looking great visually
+```{r bc}
+ps.rel.filtered <- ps.rel %>% subset_samples(wild_or_F2=="wild" & sampleType=="gut" & genotype != "none") %>% prune_taxa(taxa_sums(.)>0,.)
+p.ord <- ordinate(ps.rel.filtered, method="NMDS", distance = "bray", trymax=500)
+plot_ordination(ps.rel.filtered, p.ord, color="genotype") + labs(title="BC NMDS")
+```
+
+Permanove confirms no correlation 
+```{r permanova}
+p.bc <- distance(ps.rel.filtered, "bray")
+genotype <- sample_data(ps.rel.filtered)$genotype
+
+adonis2(p.bc ~ genotype, as(sample_data(ps.rel.filtered),"data.frame"))
+```
