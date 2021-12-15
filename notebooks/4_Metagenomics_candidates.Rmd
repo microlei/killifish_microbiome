@@ -26,8 +26,8 @@ library(vegan)
 ```
 
 ```{r data}
-ps <- readRDS(here("data/processed/ps.rds"))
-ps.rel <- readRDS(here("data/processed/psrel.rds"))
+ps.gut <- readRDS(here("data/processed/ps.rds")) %>% subset_samples(sampleType=="gut")
+ps.gut.rel <- readRDS(here("data/processed/psrel.rds")) %>% subset_samples(sampleType=="gut")
 metadata <- read.delim(here("data/processed/metadata.csv"), ",", header = TRUE, row.names=1, check.names=FALSE)
 taxonomy <- read.delim(here("data/processed/taxonomy.txt"), "\t", header=TRUE, row.names = 1, check.names=FALSE)
 ```
@@ -38,14 +38,14 @@ Criteria for good metagenomics candidates:
 
 * Few chloroplast sequences
 * male fish only in case of sex effect
-* Representative host genotypes, as determined by PCR with RF1 and IR1 reverse primers
-* Low and high diversity guts from NBH wild fish
+* Heterozygous
+* Low distance to centroid
 
 ## Chloroplasts
 
 Looks like there's plenty of choice if we filter out fish with chloroplast abundance less than 10%
 ```{r chloroplast}
-ggplot(sample_data(ps) %>% subset_samples(sampleType=="gut"), aes(x=reorder(sample, chl_abundance), y=chl_abundance, color=ifelse(chl_abundance<0.1, "good", "too much")))+geom_point()+facet_wrap(~fishType, scales="free_x") + labs(y="Chloroplast relative abundance (before removal)")
+ggplot(sample_data(ps.gut), aes(x=reorder(sample, chl_abundance), y=chl_abundance, color=ifelse(chl_abundance<0.1, "good", "too much")))+geom_point()+facet_wrap(~fishType, scales="free_x") + labs(y="Chloroplast relative abundance (before removal)")
 ```
 
 ## Host genotypes
@@ -54,6 +54,18 @@ Let's look at the distribution of host genotypes. I think it's interesting that 
 
 ```{r host genotypes}
 ggplot(metadata %>% filter(!is.na(genotype) & sampleType=="gut"), aes(x=genotype)) + geom_bar(position="stack") +facet_wrap(~fishType) + labs("Distribution of genotypes before removing high chloroplast fish") + geom_text(stat='count', aes(label=..count..), vjust=1, color="yellow")
+```
+
+## Low distance to centroid
+```{r}
+ps.gut.bc <- distance(ps.gut, "bray")
+disp.gut <- betadisper(ps.gut.bc, group=sample_data(ps.gut)$fishType)
+```
+
+## Putting it together
+```{r}
+gut_filtered <- ps.gut %>% subset_samples(chl_abundance <0.1 & sex=="M" & genotype=="het")
+sort(disp.gut$distances[sample_names(gut_filtered)])
 ```
 
 ## Variability
