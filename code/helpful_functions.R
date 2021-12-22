@@ -14,6 +14,11 @@ cleanDA <- function(da, varname){
   return(df)
 }
 
+# small shortcut function that I add whenever I subset samples. Removes taxa with zero abundance
+prune_zeros <- function(ps){
+  prune_taxa(taxa_sums(ps)>0, ps)
+}
+
 # function makes a null matrix from an otu matrix by reshuffling observations for each ASV.
 # first is the otu table and then second parameter is the number of matrices to make
 make_null <- function(otu_table,x){
