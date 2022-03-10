@@ -14,8 +14,9 @@ output:
 ---
 
 ```{r options, echo=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, error=FALSE, include=TRUE, fig.width=12, cache=TRUE, collapse=TRUE, autodep=TRUE, fig.path="html_figures/")
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, error=FALSE, include=TRUE, fig.width=12, cache=TRUE, collapse=TRUE, autodep=TRUE, fig.path="html_figures/", tidy=TRUE)
 knitr::knit_hooks$set(inline = function(x) if(is.numeric(x)){format(x,digits=2)}else{x})
+set.seed(1)
 ```
 
 ```{r libraries, cache=FALSE}
@@ -311,17 +312,17 @@ biplot.pcoa(x=ps.wild.pcoa, t(top10))
 I was curious how many ASVs were unique to each environment/fish type: Scorton Creek wild, New Bedford Harbor wild, and the respective F2 fish
 
 ```{r venn}
-taxa_list <- list(sc_w = subset_samples(ps, fishType=="Scorton Creek wild") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names(),
-                  nb_w = subset_samples(ps, fishType=="New Bedford Harbor wild") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names(),
-                  sc_f2 = subset_samples(ps, fishType=="Scorton Creek F2") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names(),
-                  nb_f2 = subset_samples(ps, fishType=="New Bedford Harbor F2") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names())
+taxa_list <- list(nb_w = subset_samples(ps, fishType=="New Bedford Harbor wild") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names(),
+                  nb_f2 = subset_samples(ps, fishType=="New Bedford Harbor F2") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names(),
+                  sc_w = subset_samples(ps, fishType=="Scorton Creek wild") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names(),
+                  sc_f2 = subset_samples(ps, fishType=="Scorton Creek F2") %>% prune_taxa(taxa_sums(.)>0,.) %>% taxa_names())
 
 taxa_overlap <- calculate.overlap(taxa_list)
 
-venn.diagram(taxa_list, filename = here("figures/Venn_gut.png"), imagetype="png", main="Venn diagram of taxa shared between fish types", category.names = c("SC wild", "NBH wild", "SC F2", "NBH F2"))
+venn.diagram(taxa_list, filename = here("figures/Venn_gut_color.png"), disable.logging = TRUE, imagetype="png", category.names = c("Tolerant wild", "Tolerant F2", "Sensitive wild", "Sensitive F2"), fill=cols.fishType[1:4], alpha=0.5, cat.col=cols.fishType[1:4], cat.cex=1.5, margin=.05, print.mode="percent")
 ```
 
-![Venn Diagram](../figures/Venn_gut.png)
+![Venn Diagram](../figures/Venn_gut_color.png)
 
 ```{r overlap percents}
 f2 <- calculate.overlap(list(taxa_list$sc_f2, taxa_list$nb_f2))
@@ -329,7 +330,19 @@ f2 <- calculate.overlap(list(taxa_list$sc_f2, taxa_list$nb_f2))
 w <- calculate.overlap(list(taxa_list$sc_w, taxa_list$nb_w))
 ```
 
-F2 fish share `r 100*length(f2$a3)/length(unique(c(f2$a1,f2$a2)))`% of their ASVs while wild fish share `r 100*length(w$a3)/length(unique(c(w$a1, w$a2)))`% of their ASVs.
+F2 fish share `r 100*length(f2$a3)/length(unique(c(f2$a1, f2$a2)))`% of their ASVs while wild fish share `r 100*length(w$a3)/length(unique(c(w$a1, w$a2)))`% of their ASVs.
+
+## Overlap of wild fish with water
+
+```{r venn water}
+nb_w <- calculate.overlap(list(nb=subset_samples(ps, fishType=="New Bedford Harbor wild") %>% prune_zeros() %>% taxa_names(),
+                               nbw=subset_samples(ps, fishType=="New Bedford Harbor water") %>% prune_zeros() %>% taxa_names()))
+
+sc_w <- calculate.overlap(list(sc=subset_samples(ps, fishType=="New Bedford Harbor wild") %>% prune_zeros() %>% taxa_names(),
+                               scw=subset_samples(ps, fishType=="New Bedford Harbor water") %>% prune_zeros() %>% taxa_names()))
+```
+
+NBH fish share `r 100*length(nb_w$a3)/length(unique(c(nb_w$a1, nb_w$a2)))`
 
 ## Core taxa - present in all fish types
 
@@ -366,6 +379,7 @@ There are still some of these major groups that are not part of the core that ar
 ```{r vibrio myco and lacto}
 ps.subset <- subset_taxa(ps.rel, Order %in% c("Vibrionales", "Lactobacillales","Mycoplasmatales")) %>% subset_samples(sampleType=="gut")
 ps.subset %>% plot_bar(fill="Order")+ geom_bar(aes(fill=Order), stat="identity", position="stack")+facet_wrap(~fishType, scales="free_x")
+
 ```
 
 ### What are the top most abundant orders in killifish guts?
@@ -377,7 +391,7 @@ I wanted to know what were the most dominant orders in each fish type. So I foun
 top5_order <- ps.melted %>% filter(sampleType=="gut") %>% group_by(Order, fishType) %>% summarise(mean_relAbund = mean(abund_rel)) %>% group_by(fishType) %>% top_n(5, mean_relAbund) %>% pull(Order)
 
 # glom ps by order and transform to relative abundance, then melting again
-ps_top5order_melt <- ps %>% tax_glom("Order") %>% transform_sample_counts(function(x) x/sum(x)) %>%  psmelt() %>% filter(Order %in% top5_order & sampleType=="gut")
+ps_top5order_melt <- ps %>% tax_glom("Order") %>% transform_sample_counts(function(x) x/sum(x)) %>% psmelt() %>% filter(Order %in% top5_order & sampleType=="gut")
 
 # plotting all 15 top Orders
 ps_top5order_melt %>% ggplot(aes(x=fishType, y=Abundance)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color=fishType), height = 0, width=.2) + facet_wrap(~Order, scales="free")
@@ -404,7 +418,7 @@ p <-plot_core(ps.rel.gut,
           detections = seq(0.001, 0.05, length.out=20), 
           plot.type = "lineplot") + 
   xlab("Relative Abundance (%)")
-
+p
 ```
 
 ```{r}
@@ -421,6 +435,9 @@ p_wil <- plot_core(ps.rel.gut %>% aggregate_taxa("Taxonomy") %>% subset_samples(
                colours = rev(brewer.pal(5, "RdBu")),
                min.prevalence = 0.1,
                plot.type = "heatmap")
+```
+
+```{r}
 p_F2 + labs(title="F2 fish core taxa", subtitle = "Minimum prevalence 10%")
 p_wil + labs(title="wild fish core taxa", subtitle = "Minimum prevalence 10%")
 ```
@@ -432,7 +449,7 @@ dat <- abundances(core_wild)
 count <- as.matrix(t(dat))
 fit_wild <- lapply(1:3, dmn, count = count, verbose=TRUE)
 lplc <- base::sapply(fit_wild, DirichletMultinomial::laplace)
-best <- fit[[which.min(unlist(lplc))]]
+best <- fit_wild[[which.min(unlist(lplc))]]
 ass <- mixturewt(best) %>% apply(1, which.max)
 
 fitted(best) %>% as.data.frame() %>% rownames_to_column("OTU") %>% set_colnames(c("OTU", "cluster", "values"))
@@ -498,19 +515,54 @@ da_wild_f2 <- differentialTest(formula = ~wild_or_F2,
                                test="Wald", boot=FALSE,
                                data=ps.abund,
                                fdr_cutoff = 0.05)
+
+# save the test for later
+saveRDS(da_wild_f2, file=here("data/processed/da_wild_f2.rds"))
+# reading in the .rds
+da_wild_f2 <-readRDS(file=here("data/processed/da_wild_f2.rds"))
 da_wild_f2_clean <- cleanDA(da_wild_f2, "wild_or_F2")
 
-p <- ggplot(filter(da_wild_f2_clean, variable!="Intercept"), aes(x=Estimate, y=reorder(str_c(ASV, " ", Taxonomy), Estimate, decreasing=TRUE))) + 
+p <- ggplot(da_wild_f2_clean %>% filter(measure=="mu" & p < 0.05), aes(x=Estimate, y=reorder(str_c(ASV, " ", Taxonomy), Estimate, decreasing=TRUE))) + 
   geom_vline(xintercept = 0, color = "gray50", lty = "dashed", alpha = 0.75, lwd = 1) +
   geom_point() +
   geom_errorbarh(aes(xmin = Estimate-1.96*StdE, xmax = Estimate+1.96*StdE), height = .3) +
   theme_light() +
-  facet_wrap(~variable, scales = "free_x", nrow = 1) +
+  facet_wrap(~wild_or_F2, scales = "free_x", nrow = 1) +
   labs(title = "", x = "", y = "Taxa") +
   scale_y_discrete(limits = rev) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p + labs(title="Differentially enriched taxa in wild vs F2 fish")
+```
+
+```{r da_wild_f2_bar_plot}
+ps_sub <- metadata %>% filter(sampleType=="gut") %>% group_by(wild_or_F2) %>% sample_n(10) %>% use_series(sample)
+ps_sub <- ps %>% subset_samples(sample %in% ps_sub) %>% tax_glom(taxrank="Family") %>% transform_sample_counts(~ ./sum(.)) %>% psmelt()
+
+sig_family <- da_wild_f2_clean$Family %>% unique() %>% .[1:5]
+
+ps_sub <- ps_sub %>% mutate(wild_or_F2 = factor(wild_or_F2)) %>% mutate(Family_f = factor(Family, levels=c(sig_family, ps_sub$Family %>% unique() %>% .[!. %in% sig_family])))
+
+labels_family <- c(levels(ps_sub$Family_f)[1:5], "Others",
+             paste0("Others", 1:(length(unique(ps_sub$Family_f)) - 6)))
+
+labels_family <- c(levels(ps_sub$Family_f)[1:5], rep("Others", times=length(unique(ps_sub$Family_f)) - 5))
+ps_sub <- ps_sub %>%
+  mutate(Family_f = factor(Family_f, labels = labels_family))
+
+cols_family <- c(hcl.colors(5, palette = "viridis"), rep("gray", length(ps_sub$Family_f %>% unique)-5))
+
+p <- ggplot(ps_sub, aes(x=sample, y = Abundance, fill=Family_f)) + 
+  geom_bar(stat="identity") + 
+  facet_wrap(~ wild_or_F2, scales="free_x") + 
+  scale_fill_manual("Family", 
+                    breaks = c(levels(ps_sub$Family_f)[1:5], "Others"),
+                    values = cols_family) + 
+  ylab("Relative Abundance") + 
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  theme_minimal() + 
+  theme(axis.text.x = element_blank())
 ```
 
 **Differentially abundant taxa between F2 SC and NBH fish**
@@ -523,14 +575,17 @@ da_site_f2 <- differentialTest(formula = ~site,
                                test="Wald", boot=FALSE,
                                data=ps.f2.abund,
                                fdr_cutoff = 0.05)
-da_site_f2_clean <- cleanDA(da_site_f2, "site") %>% filter(variable!="Intercept")
+da_site_f2_clean <- cleanDA(da_site_f2, "site")
 
-r <- ggplot(da_site_f2_clean, aes(x=Estimate, y=reorder(str_c(ASV, " ", Taxonomy), Estimate, decreasing=TRUE))) + 
+saveRDS(da_site_f2, file=here("data/processed/da_site_f2.rds"))
+
+
+r <- ggplot(da_site_f2_clean %>% filter(measure=="mu" & p < 0.05), aes(x=Estimate, y=reorder(str_c(ASV, " ", Taxonomy), Estimate, decreasing=TRUE))) + 
   geom_vline(xintercept = 0, color = "gray50", lty = "dashed", alpha = 0.75, lwd = 1) +
   geom_point() +
   geom_errorbarh(aes(xmin = Estimate-1.96*StdE, xmax = Estimate+1.96*StdE), height = .3) +
   theme_light() +
-  facet_wrap(~variable, scales = "free_x", nrow = 1) +
+  facet_wrap(~site, scales = "free_x", nrow = 1) +
   labs(title = "", x = "", y = "Taxa") +
   scale_y_discrete(limits = rev) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
@@ -549,20 +604,24 @@ da_site_wild <- differentialTest(formula = ~site,
                                test="Wald", boot=FALSE,
                                data=ps.wild.abund,
                                fdr_cutoff = 0.05)
-da_site_wild_clean <- cleanDA(da_site_wild, "site") %>% filter(variable!="Intercept")
 
-q <- ggplot(da_site_wild_clean, aes(x=Estimate, y=reorder(str_c(ASV, " ", Taxonomy), Estimate, decreasing=TRUE))) + 
+#saveRDS(da_site_wild, file=here("data/processed/da_site_wild.rds"))
+da_site_wild <- readRDS(file=here("data/processed/da_site_wild.rds"))
+da_site_wild_clean <- cleanDA(da_site_wild, "site")
+
+q <- ggplot(da_site_wild_clean %>% filter(measure=="mu" & p < 0.05), aes(x=Estimate, y=reorder(str_c(ASV, " ", Taxonomy), Estimate, decreasing=TRUE))) + 
   geom_vline(xintercept = 0, color = "gray50", lty = "dashed", alpha = 0.75, lwd = 1) +
   geom_point() +
   geom_errorbarh(aes(xmin = Estimate-1.96*StdE, xmax = Estimate+1.96*StdE), height = .3) +
   theme_light() +
-  facet_wrap(~variable, scales = "free_x", nrow = 1) +
+  facet_wrap(~site, scales = "free_x", nrow = 1) +
   labs(title = "", x = "", y = "Taxa") +
   scale_y_discrete(limits = rev) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 q + labs(title="Differentially enriched taxa between wild SC and wild NBH fish")
 ```
+
 
 ### Abundance of significant taxa in the seawater
 
@@ -575,6 +634,7 @@ ggplot(sig_water, aes(x=Abundance, y=reorder(str_c(ASV, " ", Taxonomy), Estimate
   labs(y="signifiant taxa", title="Abundance of significant taxa in SW") +
   scale_color_manual(labels=c("no", "yes"), values=c("red", "blue")) + guides(color=guide_legend(title="enriched in SC"))
 ```
+
 ```{r sig water table}
 sig_water <- sig_water %>% select(ASV, site, Estimate, Taxonomy, Abundance, Sample) %>% mutate(SC_enriched = Estimate >0) %>% group_by(ASV, site) %>% summarise(avg=mean(Abundance), SC_enriched = SC_enriched, Taxonomy=Taxonomy) %>% distinct() %>% pivot_wider(id_cols=c(ASV,site, SC_enriched, Taxonomy), names_from=site, values_from=avg) %>% mutate(expected = ifelse(SC_enriched, ifelse(`Scorton Creek` > `New Bedford Harbor`, "yes", "no"),ifelse(`New Bedford Harbor` > `Scorton Creek`, "yes", "no")))
 sig_water <- rename(sig_water, NBH_abund="New Bedford Harbor", SC_abund = "Scorton Creek")
@@ -599,16 +659,33 @@ taxa_list <- list(
 overlap <- calculate.overlap(taxa_list)
 ```
 
-Scorton Creek fish have `r length(overlap$a1)` Vibrio ASVs, New Bedford fish have `r length(overlap$a2)` Vibrio ASVs, and they share `r length(overlap$a3)` Vibrio ASVs. For clarity, I only plotted the ASVs which ever reach a relative abundance above 1%. In SC ASV2 is dominant, but in NBH ASV2 and ASV5 are about equally dominant
+Scorton Creek wild fish have `r length(overlap$a1)` Vibrio ASVs, New Bedford wild fish have `r length(overlap$a2)` Vibrio ASVs, and they share `r length(overlap$a3)` Vibrio ASVs. For clarity, I only plotted the ASVs which ever reach a relative abundance above 1%. In SC ASV2 is dominant, but in NBH ASV2 and ASV5 are about equally dominant
 
 ```{r vibrio overlap}
-ps_vibrio_overlap <- ps_vibrio %>% transform_sample_counts(function(x) x/sum(x)) %>% filter_taxa(function(x) any(x>0.01), prune=TRUE) %>% psmelt() %>% filter(OTU %in% overlap$a3)
+ps_vibrio_overlap <- ps_vibrio %>% filter_taxa2(~ sum(.>0)>3) %>% merge_samples2(group="site") %>%  transform_sample_counts(~ ./sum(.)) %>% psmelt()
 
-shading <- tibble(OTU = unique(ps_vibrio_overlap$OTU)) %>% mutate(min=seq(from=.5, to=max(as.numeric(as.factor(OTU))), by=1), max=min+1, col=rep(c(0,1), length.out=length(min)))
 
-p <- ps_vibrio_overlap %>% ggplot() + geom_boxplot(aes(x=Abundance, y=reorder(OTU, Abundance), color=site)) + geom_rect(data=shading, aes(ymin=min, ymax=max, xmin=-Inf, xmax=Inf, fill=factor(col)), alpha=0.2) + scale_fill_manual(values=c("white", "gray53")) + theme_bw() + guides(fill="none") + theme(legend.direction = "horizontal", legend.position = "bottom") + labs(y="", x="Relative abundance", main="Vibrio ASVs in wild fish")
+# ps_vibrio_overlap <- ps %>% subset_samples(wild_or_F2 == "wild" | sampleType=="water") %>% subset_taxa(Order=="Vibrionales") %>% filter_taxa2(~ sum(.>0)>3) %>% merge_samples2(group="fishType") %>% transform_sample_counts(~ ./sum(.)) %>% psmelt()
+
+sig_vibrios <- da_site_wild_clean %>% filter(Order=="Vibrionales" & measure=="mu") %>% use_series("ASV")
+cols.vibrio <- c(hcl.colors(length(sig_vibrios), palette="viridis"), gray.colors(44-length(sig_vibrios)))
+p <- ps_vibrio_overlap %>% ggplot(aes(x="", y=Abundance, fill=OTU)) + geom_bar(width=1, stat="identity") + coord_polar("y", start=0) + facet_wrap(~site) + theme_void() + scale_fill_manual(values=cols.vibrio, breaks=c(sig_vibrios, p$data$OTU %>% unique() %>% .[!. %in% sig_vibrios]))
+
+# p <- ps_vibrio_overlap %>% ggplot(aes(x="", y=Abundance, fill=OTU)) + geom_bar(width=1, stat="identity") + coord_polar("y", start=0) + facet_wrap(~fishType) + theme_void() + scale_fill_manual(values=cols.vibrio, breaks=c(sig_vibrios, p$data$OTU %>% unique() %>% .[!. %in% sig_vibrios]))
 
 p
+```
+
+```{r, eval=FALSE}
+ps_vibrio_overlap <- ps_vibrio %>% transform_sample_counts(~ ./sum(.)) %>% filter_taxa(function(x) any(x>0.01), prune=TRUE) %>% psmelt() %>% filter(OTU %in% overlap$a3)
+shading <- tibble(OTU = unique(ps_vibrio_overlap$OTU)) %>% mutate(min=seq(from=.5, to=max(as.numeric(as.factor(OTU))), by=1), max=min+1, col=rep(c(0,1), length.out=length(min)))
+p <- ps_vibrio_overlap %>% ggplot() + geom_boxplot(aes(y=Abundance, x=reorder(OTU, -Abundance), color=site)) + geom_rect(data=shading, aes(xmin=min, xmax=max, ymin=-Inf, ymax=Inf, fill=factor(col)), alpha=0.2) + scale_fill_manual(values=c("white", "gray53")) + theme_bw() + guides(fill="none") + theme(legend.direction = "horizontal", legend.position = "bottom") + labs(x="", y="Relative abundance", main="Vibrio ASVs in wild fish")
+```
+
+ASV2 is way more abundant in SC wild and somewhat more abundant in SC F2 (though lower)
+
+```{r}
+ps.rel %>% subset_samples(sampleType=="gut") %>% prune_taxa("ASV2", .) %>% psmelt() %>% ggplot(aes(x=fishType, y=Abundance, color=fishType)) +geom_boxplot() + geom_point() + facet_wrap(~wild_or_F2, scales="free") + scale_color_manual(values=cols.fishType[1:4]) + theme_cowplot() + theme(axis.text.x=element_blank(), legend.position = "none") + labs(x="", y="Relative abundance")
 ```
 
 ## Tree of Vibrios
@@ -617,10 +694,12 @@ p
 
 library(ggtree)
 
-vibrio_tree <- phy_tree(tree) %>% merge_phyloseq(ps_vibrio) %>% transform_sample_counts(function(x) x/sum(x)) %>% filter_taxa(function(x) any(x>0.01), prune=TRUE) %>% phy_tree() %>% ggtree(ladderize = F) + geom_tiplab(aes(label=label))
+vibrio_tree <- phy_tree(tree) %>% merge_phyloseq(ps_vibrio) %>% prune_taxa(overlap$a3,.) %>%  phy_tree() %>% ggtree(ladderize = F) + geom_tiplab(aes(label=label, color=label))
 vibrio_tree
 ```
 ## Vibrio corrplot 
+
+This is a shitty corrplot that doesn't take into account the compositionality of the data, but does show that ASV2 is negatively correlated with many of the other vibrios.
 
 ```{r vibrio corrplot}
 v_otu <- ps_vibrio %>% transform_sample_counts(function(x) x/sum(x)) %>% filter_taxa(function(x) any(x>0.01), prune=TRUE) %>% otu_table() %>% t() %>% as.data.frame()
@@ -629,39 +708,261 @@ v_otu <- ps_vibrio %>% subset_samples(fishType=="New Bedford Harbor wild") %>% t
 corrplot(cor(v_otu[,rev(vibrio_tree$data$label[1:46])]))
 ```
 
-# Microbial co-occurence networks
+A corrplot made from the sparse covariance matrix of wild fish using Spieceasi doesn't show ASV2 anticorrelated with other vibrios
 
-TBD
+```{r vibrio corrplot better}
+se_cov <- readRDS(here("data/processed/se_wild_cov.rds"))
+ps.wild.abund <- ps %>% subset_samples(sampleType=="gut" & wild_or_F2=="wild") %>% prune_taxa(taxa_sums(.)>50,.)
+colnames(se_cov) <- rownames(se_cov) <- rownames(otu_table(ps.wild.abund))
 
-## In wild fish
+se_cov[ps.wild.abund %>% subset_taxa(taxa_names(ps.wild.abund) %in% overlap$a3) %>% taxa_names(),ps.wild.abund %>% subset_taxa(taxa_names(ps.wild.abund) %in% overlap$a3) %>% taxa_names()] %>% as.matrix() %>% cov2cor() %>% corrplot()
+```   
+
+# Mycoplasmatales
+
+Mycoplasma abundance not associated with weight or fish size
+
+```{r}
+ps.rel %>% subset_taxa(Order=="Mycoplasmatales") %>% subset_samples(wild_or_F2=="wild") %>% psmelt() %>% group_by(sample) %>% summarise(sum = sum(Abundance), weight.g=mean(weight.g), length.cm=mean(length.cm), site=site) %>% filter(sum>0) %>% ggplot(aes(x=sum, y=weight.g/length.cm)) + geom_point() + facet_wrap(~site) + scale_x_log10()
+```
+
+# Simper analysis
+
+What taxa are contributing most to B-C dissimilarities?
+
+```{r}
+asvs_gut <- ps  %>% subset_samples(sampleType=="gut") %>% prune_taxa(taxa_sums(.)>50,.)%>% otu_table() %>% as.data.frame()
+metadata_gut <- ps %>% subset_samples(sampleType=="gut") %>% sample_data() %>% as.data.frame()
+
+simp_fishType <- simper(t(asvs_gut), metadata_gut$fishType)
+simp_summary <- summary(simp_fishType)
+simp_summary
+```
+
+# Network analysis
+
+```{r}
+library(SpiecEasi)
+library(igraph)
+library(tidygraph)
+library(ggraph)
+library(graphlayouts)
+
+# load results
+load(here("data/processed/se_results.RData"))
+
+# recreate the ps objects that were used as the input for SpiecEasi
+ps_NBH_wild <- ps %>% subset_samples(fishType=="New Bedford Harbor wild") %>% prune_taxa(taxa_sums(.)>50,.)
+ps_SC_wild <- ps %>% subset_samples(fishType=="Scorton Creek wild") %>% prune_taxa(taxa_sums(.)>50,.)
+ps_NBH_F2 <- ps %>% subset_samples(fishType=="New Bedford Harbor F2") %>% prune_zeros()
+ps_SC_F2 <- ps %>% subset_samples(fishType== "Scorton Creek F2") %>% prune_zeros()
+ps_wild <- ps %>% subset_samples(sampleType=="gut" & wild_or_F2=="wild") %>% prune_taxa(taxa_sums(.)>50,.)
+
+se_wild_icov <- readRDS(here("data/processed/se_wild_icov.rds"))
+
+taxonomy <- tax_table(ps) %>% as.data.frame() %>% rownames_to_column(var="ASV")
+
+# Make network/igraph objects
+se_SC_net <- adj2igraph(se_SC_refit, vertex.attr = list(name=taxa_names(ps_SC_wild)))
+se_NBH_net <- adj2igraph(se_NBH_refit %>% symBeta(), vertex.attr = list(name=taxa_names(ps_NBH_wild)))
+se_SC_F2_net <- adj2igraph(se_SC_F2_refit, vertex.attr = list(name=taxa_names(ps_SC_F2)))
+se_NBH_F2_net <- adj2igraph(se_NBH_F2_refit, vertex.attr = list(name=taxa_names(ps_NBH_F2)))
+
+# name cov matrix dimensions
+colnames(se_NBH_cov) <- rownames(se_NBH_cov) <- rownames(otu_table(ps_NBH_wild))
+colnames(se_SC_cov) <- rownames(se_SC_cov) <- rownames(otu_table(ps_SC_wild))
+colnames(se_wild_icov) <- rownames(se_wild_icov) <- rownames(otu_table(ps_wild))
+
+# Add attributes to the nodes
+V(se_SC_net)$degree <- degree(se_SC_net)
+V(se_NBH_net)$degree <- degree(se_NBH_net)
+V(se_SC_F2_net)$degree <- degree(se_SC_F2_net)
+V(se_NBH_F2_net)$degree <- degree(se_NBH_F2_net)
+
+V(se_SC_net)$relabund <- apply(ps.rel %>% subset_taxa(taxa_names(ps.rel) %in% taxa_names(ps_SC_wild)) %>% otu_table(), 1, function(x) log(mean(x)))
+V(se_NBH_net)$relabund <-apply(ps.rel %>% subset_taxa(taxa_names(ps.rel) %in% taxa_names(ps_SC_wild)) %>% otu_table(), 1, function(x) log(mean(x)))
+V(se_SC_F2_net)$relabund <- apply(ps.rel %>% subset_taxa(taxa_names(ps.rel) %in% taxa_names(ps_SC_F2)) %>% otu_table(), 1, function(x) log(mean(x)))
+V(se_NBH_F2_net)$relabund <-apply(ps.rel %>% subset_taxa(taxa_names(ps.rel) %in% taxa_names(ps_NBH_F2)) %>% otu_table(), 1, function(x) log(mean(x)))
+
+# Use tidygraph to add more node attributes
+se_SC_tidynet <- as_tbl_graph(se_SC_net) %>% activate(nodes) %>% mutate(trans_local = local_transitivity(), degree_local = local_ave_degree()) %>% 
+  left_join(taxonomy, by=c("name"="ASV"))
+
+se_NBH_tidynet <- as_tbl_graph(se_NBH_net) %>% activate(nodes) %>% mutate(trans_local = local_transitivity(), degree_local = local_ave_degree()) %>% 
+  left_join(taxonomy, by=c("name"="ASV"))
+
+se_SC_F2_tidynet <- as_tbl_graph(se_SC_F2_net) %>% activate(nodes) %>% mutate(trans_local = local_transitivity(), degree_local = local_ave_degree()) %>% 
+  left_join(taxonomy, by=c("name"="ASV"))
+
+se_NBH_F2_tidynet <- as_tbl_graph(se_NBH_F2_net) %>% activate(nodes) %>% mutate(trans_local = local_transitivity(), degree_local = local_ave_degree()) %>% 
+  left_join(taxonomy, by=c("name"="ASV"))
+```
+
+## Topological indices for SC and NBH wild networks
+
+Compared to the average degree, the degree distribution is more unequal in the smaller network. So bigger nodes are more popular/important/connected than in the larger network. Smaller network has no bridging nodes between disconnected subgraphs. Shortest path measure as a measure of how well the network is connected, but it excludes missing paths. Centralization: global network measure expressing the degree to which the centrality of the most central node exceeds the centrality of all other nodes in the network. 
+```{r}
+top_ind <- tribble(
+  ~"Topological Indices", ~"NBH wild", ~"SC wild", ~"NBH F2", ~"SC F2",
+  "No. ASVs (nodes)", length(V(se_NBH_net)), length(V(se_SC_net)), length(V(se_NBH_F2_net)), length(V(se_SC_F2_net)),
+  "No. interactions (edges)", length(E(se_NBH_net)), length(E(se_SC_net)), length(E(se_NBH_F2_net)), length(E(se_SC_F2_net)),
+  "Mean degree", round(mean(degree(se_NBH_net)),0), round(mean(degree(se_SC_net)),0), round(mean(degree(se_NBH_F2_net)),0), round(mean(degree(se_SC_F2_net)),0),
+  "SD degree", round(sd(degree(se_NBH_net)),0), round(sd(degree(se_SC_net)),0), round(sd(degree(se_NBH_F2_net)),0), round(sd(degree(se_SC_F2_net)),0),
+  "Transitivity/Cluster coefficient", transitivity(se_NBH_net), transitivity(se_SC_net), transitivity(se_NBH_F2_net), transitivity(se_SC_F2_net),
+  "Avg. path length", mean_distance(se_NBH_net), mean_distance(se_SC_net), mean_distance(se_NBH_F2_net), mean_distance(se_SC_F2_net),
+  "Density", edge_density(se_NBH_net), edge_density(se_SC_net), edge_density(se_NBH_F2_net), edge_density(se_SC_F2_net),
+  "Modularity (fast-greedy)", modularity(cluster_fast_greedy(se_NBH_net)), modularity(cluster_fast_greedy(se_SC_net)), modularity(cluster_fast_greedy(se_NBH_F2_net)), modularity(cluster_fast_greedy(se_SC_F2_net)),
+  "Degree centralization", centr_degree(se_NBH_net)$centralization, centr_degree(se_SC_net)$centralization, centr_degree(se_NBH_F2_net)$centralization, centr_degree(se_SC_F2_net)$centralization,
+  "Number of components, excluding singletons", sum(components(se_NBH_net)$csize>1), sum(components(se_SC_net)$csize>1), sum(components(se_NBH_F2_net)$csize>1), sum(components(se_SC_F2_net)$csize>1))
+# number of nodes (ASVs)
+# number of interactions (edges)
+# mean degree +/- SD
+# transitivity aka cluster coefficient
+# average path length
+# average neighbors
+# density 
+# heterogeneity
+
+top_ind
+```
+
+
+## NetSwan attack tolerance test
+
+Because there is more community structure, SC is more sensitive to loss of connectivity/loss of bridging nodes. 
+
+```{r}
+library(NetSwan)
+
+# Swan combinatory took a long time so these results were run once and then saved
+
+# swan_NBH_wild <- swan_combinatory(se_NBH_net, 10)
+# swan_SC_wild <- swan_combinatory(se_SC_net, 10)
+# save(swan_NBH_wild, swan_SC_wild, file=here("data/processed/netswan_wild.RData"))
+
+load(here("data/processed/netswan_wild.RData"))
+colnames(swan_NBH_wild) <- colnames(swan_SC_wild) <- c("fraction", "betweenness", "degree", "cascade", "random")
+swan_wild <- pivot_longer(swan_NBH_wild %>% as_tibble(), cols = betweenness:random, names_to = "attack") %>% add_column(fishType=rep("New Bedford Harbor wild", n=nrow(.))) %>% bind_rows(pivot_longer(swan_SC_wild %>% as_tibble(), cols=betweenness:random, names_to = "attack") %>% add_column(fishType=rep("Scorton Creek wild", n=nrow(.))))
+# ggplot(swan_wild, aes(x=fraction, y=value, color=site)) + geom_point() + facet_wrap(~attack)
+
+p<-ggplot(swan_wild %>% filter(attack=="degree"), aes(x=fraction, y=value, color=fishType)) + geom_point(size=4) + scale_color_manual(values = c(cols.fishType[1], cols.fishType[3])) + labs(x="Fraction of nodes removed", y=expression("Loss of connectivity \U2192"))
+p + theme(axis.title = element_text(size=20), legend.title = element_blank())
+```
+
+## Plotting the networks
+
+More specialized networks in non-NBH-wild fish?
+```{r plot network wild}
+library(RColorBrewer)
+# make color palette of 28 distinct colors
+graph_color_phyla <- tibble(breaks=unique(as_tibble(se_NBH_tidynet)$Phylum), values=c("#d25032","#576bd8","#5bc24f","#9459d2","#babb3a","#d265cf","#58952c","#c94097","#6cb66c","#e03d6b","#58c99e","#8d53a5","#958e2c","#a495e1","#dc913b","#536db1","#bdaf6c","#52a3d8","#a84b3d","#42c0c7","#b24669","#3d7f46","#dd87bb","#61712c","#95527d","#348a6e","#e4877b","#956a32"))
+
+# Make layout using igraph's "nicely" algo
+sc_layout <- create_layout(se_SC_tidynet, layout="stress")
+sc_wild_graph <- ggraph(sc_layout) + geom_edge_link(edge_colour="grey66") + geom_node_point(aes(color=Phylum), size=.3) + scale_color_manual(breaks=graph_color_phyla$breaks, values=graph_color_phyla$values) + labs(title = "Scorton Creek wild") + theme(legend.position = "none")
+
+# remove an outlying node to improve plotting
+nbh_layout <- create_layout(se_NBH_tidynet %>% filter(name!="ASV702"), layout="stress")
+nbh_wild_graph <- ggraph(nbh_layout) + geom_edge_link(edge_color="grey66", edge_alpha=0.15) + geom_node_point(aes(color=Phylum), size=.3) + scale_color_manual(breaks=graph_color_phyla$breaks, values=graph_color_phyla$values) + labs(title="New Bedford Harbor wild") + theme(legend.position = "none")
+
+sc_F2_layout <- create_layout(se_SC_F2_tidynet, layout="stress")
+sc_F2_graph <- ggraph(sc_F2_layout) + geom_edge_link(edge_colour="grey66") + geom_node_point(aes(color=Phylum), size=.3) + scale_color_manual(breaks=graph_color_phyla$breaks, values=graph_color_phyla$values) +labs(title="Scorton Creek F2") + theme(legend.position = "none")
+
+nbh_F2_layout <- create_layout(se_NBH_F2_tidynet, layout="stress")
+nbh_F2_graph <- ggraph(nbh_F2_layout) + geom_edge_link(edge_color="grey66", edge_alpha=0.15) + geom_node_point(aes(color=Phylum), size=.3) + scale_color_manual(breaks=graph_color_phyla$breaks, values=graph_color_phyla$values) + labs(title="New Bedford Harbor F2") + theme(legend.position = "none")
+
+all_net <- plot_grid(sc_wild_graph, nbh_wild_graph, sc_F2_graph, nbh_F2_graph)
+
+ggsave(all_net,filename=here("figures/plot_se_graphs.png"), width=5, height=5, units="in")
+```
+
+## Key player analysis
+
+```{r}
+# install package keyplayer
+
+```
+
+## Degree distributions of NBH and SC wild networks
+
+But maybe this comparison isn't valid because there's such a big difference in node number
+
+```{r degree distribution}
+# compute and plot degree distributions
+deg_dist <- tibble(fishType="Scorton Creek wild", deg = degree.distribution(se_SC_net)) %>% 
+  bind_rows(tibble(fishType="Scorton Creek F2", deg = degree.distribution(se_SC_F2_net))) %>% 
+  bind_rows(tibble(fishType="New Bedford Harbor wild", deg = degree.distribution(se_NBH_net))) %>% 
+  bind_rows(tibble(fishType="New Bedford Harbor F2", deg = degree.distribution(se_NBH_F2_net))) %>% 
+  group_by(fishType) %>% mutate(x = 0:(n()-1))
+
+deg_dist$fishType_f <- factor(deg_dist$fishType, levels = c("Scorton Creek wild", "New Bedford Harbor wild", "Scorton Creek F2", "New Bedford Harbor F2"))
+ggplot(deg_dist, aes(x=x, y=deg, color=fishType)) + geom_point(shape=1)+geom_line()+ facet_wrap(~fishType_f, scales="free") + scale_color_manual(values=cols.fishType) +
+  labs(x="Degree", y="Frequency") + theme_cowplot()+ theme(legend.position = "none")
+
+```
+
+
+## Pruning NBH wild to have same # V as SC wild
+
+I pruned NBH taxa such that it had the same number of taxa as SC wild did in the original network and reran the network test. 
+```{r}
+load(here("data/processed/se_tests_refits.RData"))
+
+ps_sc_pruned <- ps %>% subset_samples(fishType=="Scorton Creek wild") %>% prune_taxa(taxa_sums(.)>50,.)
+ps_nbh_top <- ps  %>% subset_samples(fishType=="New Bedford Harbor wild")  %>% prune_taxa(names(sort(taxa_sums(.), TRUE))[1:ntaxa(ps_sc_pruned)],.)
+
+
+se_NBH_top_net <- adj2igraph(se_test_nbh_top_gl %>% symBeta(), vertex.attr = list(name=taxa_names(ps_nbh_top)))
+V(se_NBH_top_net)$degree <- degree(se_NBH_top_net)
+
+taxonomy <- tax_table(ps) %>% as.data.frame() %>% rownames_to_column(var="ASV")
+
+
+se_NBH_top_tidynet <- as_tbl_graph(se_NBH_top_net) %>% activate(nodes) %>% mutate(trans_local = local_transitivity(), degree_local = local_ave_degree()) %>% 
+  left_join(taxonomy, by=c("name"="ASV"))
+
+graph_color_phyla <- tibble(breaks=unique(as_tibble(se_NBH_top_tidynet)$Phylum), 
+                            values=c("#d25032","#576bd8","#5bc24f","#9459d2","#babb3a","#d265cf","#58952c","#c94097","#6cb66c","#e03d6b","#58c99e","#8d53a5","#958e2c","#a495e1","#dc913b","#536db1","#bdaf6c","#52a3d8","#a84b3d","#42c0c7"))
+nbh_top_layout <- create_layout(se_NBH_top_tidynet, layout="stress")
+nbh_wild_top_graph <- ggraph(nbh_top_layout) + geom_edge_link(edge_color="grey66", edge_alpha=0.15) + geom_node_point(aes(color=Phylum), size=.3) + scale_color_manual(breaks=graph_color_phyla$breaks, values=graph_color_phyla$values) + labs(title="New Bedford Harbor wild") + theme(legend.position = "none")
+
+dd.nbh <- degree.distribution(se_NBH_top_net)
+
+plot(0:(length(dd.nbh)-1), dd.nbh, type='b',
+     ylab="Frequency", xlab="Degree", main="Degree Distributions")
+
+net_stats_NBH_top <- tribble(
+  ~"Topological Indices", ~"NBH wild subset",
+  "No. ASVs (nodes)", length(V(se_NBH_top_net)),
+  "No. interactions (edges)", length(E(se_NBH_top_net)),
+  "Mean degree", round(mean(degree(se_NBH_top_net)),0),
+  "SD degree", round(sd(degree(se_NBH_top_net)),0),
+  "Transitivity/Cluster coefficient", transitivity(se_NBH_top_net),
+  "Avg. path length", mean_distance(se_NBH_top_net),
+  "Density", edge_density(se_NBH_top_net),
+  "Modularity (fast-greedy)", modularity(cluster_fast_greedy(se_NBH_top_net)),
+  "Degree centralization", centr_degree(se_NBH_top_net)$centralization,
+  "Number of components, excluding singletons", sum(components(se_NBH_top_net)$csize>1))
+left_join(top_ind, net_stats_NBH_top)
+```
+
+## Wild microbiomes in general
 
 I found that SC fish had high abundances of both vibrios and mycoplasmatales and wondered if they were negatively correlated overall and if Vibrio and Mycoplasmatales collectively structure wild (or just SC) gut microbiomes. 
 
-## In F2 fish
+```{r}
+vibrios <- ps_wild %>% tax_table() %>% as.data.frame() %>% rownames_to_column(var="ASV") %>% filter(Family=="Vibrionaceae")
 
-```{r, eval=FALSE}
-library(ggnetwork)
-library(igraph)
-ps_wild_abund <- subset_samples(ps, sampleType=="gut" & wild_or_F2 == "wild") %>% prune_taxa(names(sort(taxa_sums(.),TRUE))[1:20],.)
-tax_dist <- ps_wild_abund %>% otu_table() %>% as.data.frame() %>% vegdist("jaccard")
-wild_net <- tax_dist %>% as.matrix() %>% graph.adjacency("undirected",weighted=TRUE)
-#wild_net <- make_network(ps_wild_abund, "taxa", distance=tax_dist, keep.isolates = TRUE, max.dist = 1)
-wild_metadata <- as(sample_data(ps_wild_abund),"data.frame")
-wild_otudata <- as(tax_table(ps_wild_abund), "data.frame") %>% rownames_to_column(var="ASV") %>% mutate(taxname=str_c(ASV,"_",Taxonomy))
-V(wild_net)$taxname <- wild_otudata[,"taxname"]
-V(wild_net)$Order <- wild_otudata[,"Order"]
+vibrio_icov<-se_wild_icov[rownames(se_wild_icov) %in% vibrios$ASV,colnames(se_wild_icov) %in% vibrios$ASV]
+heatmap(vibrio_icov %>% as.matrix())
 
-#V(wild_net)$sample <- wild_metadata[names(V(wild_net)),"sample"]
-netg <- ggnetwork(wild_net)
+vibrio_net <- graph_from_adjacency_matrix(vibrio_icov, weighted=TRUE) %>% as_tbl_graph()
+ggraph(vibrio_net) + geom_edge_link(aes(edge_color=weight)) + geom_node_point() + scale_edge_color_gradient2(low="blue", high = "red", mid="white", midpoint = 0)
 
-ggplot(netg, aes(x = x, y = y, xend = xend, yend = yend)) +
-  geom_edges(aes(alpha = weight, size=weight)) + scale_size(range=c(0,3)) + scale_alpha(range=c(0,.5)) +
-  geom_nodes(aes(color=Order)) + 
-  geom_nodelabel_repel(aes(label=taxname, fill=Order))+
-  theme_blank()
+#turns out all vibrios are negatively covarying with each other
 ```
 
-## Host AHR genotype distributions
+# Host AHR genotype
 
 Let's look at the distribution of host genotypes. I think it's interesting that the distribution of genotypes is so similar for the wild fish but different in the F2 that were common garden raised. Fish with genotype "none" did not have a band wither either set of primer. I have re-extracted DNA and re-run the primers for the wild fish, which decreased the number of "none" genotypes, but have not done so yet for the F2 fish, hence the greater number of "none" fish in F2. 
 
